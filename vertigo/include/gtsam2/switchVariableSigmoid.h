@@ -102,4 +102,29 @@ namespace vertigo {
   };
 }
 
+namespace gtsam {
+// Define Key to be Testable by specializing gtsam::traits
+template<typename T> struct traits;
+template<> struct traits<vertigo::SwitchVariableSigmoid> {
+  static void Print(const vertigo::SwitchVariableSigmoid& key, const std::string& str = "") {
+    key.print(str);
+  }
+  static bool Equals(const vertigo::SwitchVariableSigmoid& key1, const vertigo::SwitchVariableSigmoid& key2, double tol = 1e-8) {
+    return key1.equals(key2, tol);
+  }
+  static int GetDimension(const vertigo::SwitchVariableSigmoid & key) {return key.Dim();}
+
+  typedef OptionalJacobian<3, 3> ChartJacobian;
+  typedef gtsam::Vector TangentVector;
+  static TangentVector Local(const vertigo::SwitchVariableSigmoid& origin, const vertigo::SwitchVariableSigmoid& other,
+  ChartJacobian Horigin = boost::none, ChartJacobian Hother = boost::none) {
+    return origin.localCoordinates(other);
+  }
+  static vertigo::SwitchVariableSigmoid Retract(const vertigo::SwitchVariableSigmoid& g, const TangentVector& v,
+        ChartJacobian H1 = boost::none, ChartJacobian H2 = boost::none) {
+      return g.retract(v);
+    }
+};
+}
+
 #endif /* SWITCHVARIABLESIGMOID_H_ */
