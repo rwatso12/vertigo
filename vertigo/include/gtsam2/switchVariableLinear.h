@@ -61,7 +61,7 @@ namespace vertigo {
     }
 
     /** @return the local coordinates of another object */
-    inline gtsam::Vector localCoordinates(const SwitchVariableLinear& t2) const { return gtsam::Vector1(1,(t2.value() - value())); }
+    inline gtsam::Vector localCoordinates(const SwitchVariableLinear& t2) const { return gtsam::Vector1(t2.value() - value()); }
 
     // Group requirements
 
@@ -95,7 +95,7 @@ namespace vertigo {
     static inline SwitchVariableLinear Expmap(const gtsam::Vector& v) { return SwitchVariableLinear(v(0)); }
 
     /** Logmap around identity - just returns with default cast back */
-    static inline gtsam::Vector Logmap(const SwitchVariableLinear& p) { return gtsam::Vector1(1,p.value()); }
+    static inline gtsam::Vector Logmap(const SwitchVariableLinear& p) { return gtsam::Vector1(p.value()); }
 
   private:
       double d_;

@@ -23,7 +23,7 @@ namespace po = boost::program_options;
 #include "boost/foreach.hpp"
 #define foreach BOOST_FOREACH
 
-#include <boost/progress.hpp>
+//#include <boost/progress.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "betweenFactorSwitchable.h"
@@ -235,13 +235,13 @@ int main(int argc, char *argv[])
     ISAM2 isam2(isam2Params);
 
 
-    // === go through the data and incrementally fee1d it into iSAM2 ===
+    // === go through the data and incrementally feed it into iSAM2 ===
     cout << "Running iSAM2 ..." << endl;
 
     // set up progress bar
     int progressLength = poses.size();
     if (stop>0 && stop<=poses.size()) progressLength=stop;
-    boost::progress_display show_progress(progressLength);
+//    boost::progress_display show_progress(progressLength);
 
     int counter=0;
     int switchCounter=-1;
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
      std::pair<std::multimap<int, int>::iterator, std::multimap<int, int>::iterator > ret = poseToEdges.equal_range(p.id);
 //      timer.toc("findEdges");
 
-    	for (multimap<int, int>::iterator it=ret.first; it!=ret.second; it++) {
+      for (std::multimap<int, int>::iterator it=ret.first; it!=ret.second; it++) {
 
     	  // look at the edge and see if it is switchable or not
     	  Edge e = edges[it->second];
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
             initialEstimate.insert(Symbol('s',++switchCounter),SwitchVariableLinear(1.0));
 
             // create switch prior factor
-            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector_(1, 1.0));
+            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector2(1, 1.0));
             boost::shared_ptr<PriorFactor<SwitchVariableLinear> > switchPriorFactor (new PriorFactor<SwitchVariableLinear> (Symbol('s',switchCounter), SwitchVariableLinear(1.0), switchPriorModel));
             graph.push_back(switchPriorFactor);
 
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
     		    initialEstimate.insert(Symbol('s',++switchCounter),SwitchVariableSigmoid(10.0));
 
     		    // create switch prior factor
-    		    SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector_(1, 20.0));
+            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector2(1, 20.0));
     		    boost::shared_ptr<PriorFactor<SwitchVariableSigmoid> > switchPriorFactor (new PriorFactor<SwitchVariableSigmoid> (Symbol('s',switchCounter), SwitchVariableSigmoid(10.0), switchPriorModel));
     		    graph.push_back(switchPriorFactor);
 
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 
     	if (p.id==0) {
     	  // add prior for first pose
-    	  SharedDiagonal prior_model = noiseModel::Diagonal::Sigmas(Vector_(3, 0.01, 0.01, 0.01));
+        SharedDiagonal prior_model = noiseModel::Diagonal::Sigmas(Vector4(3, 0.01, 0.01, 0.01));
     		graph.addPrior(p.id, Pose2(p.x, p.y, p.th), prior_model);
 
     		// initial value for first pose
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
     	}
 
 
-    	if (!verbose) ++show_progress;
+//    	if (!verbose) ++show_progress;
     	if ( (counter++ >= stop) && (stop>0)) break;
 
     	if (false) {
