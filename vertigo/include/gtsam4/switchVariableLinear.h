@@ -13,14 +13,14 @@
 //#include <gtsam/base/DerivedValue.h>
 #include <gtsam/base/Value.h>
 #include <gtsam/base/Lie.h>
-#include "DerivedValue.h"
+//#include "DerivedValue.h"
 
 namespace vertigo {
 
   /**
    * SwitchVariableLinear is a wrapper around double to allow it to be a Lie type
    */
-struct SwitchVariableLinear : public gtsam::DerivedValue<SwitchVariableLinear>{
+struct SwitchVariableLinear {
 //  struct SwitchVariableLinear : public gtsam::DerivedValue<SwitchVariableLinear> {
 
     /** default constructor */

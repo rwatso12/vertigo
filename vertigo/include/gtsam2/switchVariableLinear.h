@@ -11,8 +11,8 @@
 #pragma once
 
 //#include <gtsam/base/DerivedValue.h>
-#include "DerivedValue.h"
-#include <gtsam/base/Value.h>
+//#include "DerivedValue.h" this is depreacated and not to be used any longer
+//#include <gtsam/base/Value.h>
 #include <gtsam/base/Lie.h>
 
 namespace vertigo {
@@ -20,7 +20,7 @@ namespace vertigo {
   /**
    * SwitchVariableLinear is a wrapper around double to allow it to be a Lie type
    */
-  struct SwitchVariableLinear : public gtsam::DerivedValue<SwitchVariableLinear> {
+  struct SwitchVariableLinear {
 
     /** default constructor */
     SwitchVariableLinear() : d_(0.0) {}
@@ -100,6 +100,31 @@ namespace vertigo {
   private:
       double d_;
   };
+}
+
+namespace gtsam {
+// Define Key to be Testable by specializing gtsam::traits
+template<typename T> struct traits;
+template<> struct traits<vertigo::SwitchVariableLinear> {
+  static void Print(const vertigo::SwitchVariableLinear& key, const std::string& str = "") {
+    key.print(str);
+  }
+  static bool Equals(const vertigo::SwitchVariableLinear& key1, const vertigo::SwitchVariableLinear& key2, double tol = 1e-8) {
+    return key1.equals(key2, tol);
+  }
+  static int GetDimension(const vertigo::SwitchVariableLinear & key) {return key.Dim();}
+
+  typedef OptionalJacobian<3, 3> ChartJacobian;
+  typedef gtsam::Vector TangentVector;
+  static TangentVector Local(const vertigo::SwitchVariableLinear& origin, const vertigo::SwitchVariableLinear& other,
+  ChartJacobian Horigin = boost::none, ChartJacobian Hother = boost::none) {
+    return origin.localCoordinates(other);
+  }
+  static vertigo::SwitchVariableLinear Retract(const vertigo::SwitchVariableLinear& g, const TangentVector& v,
+        ChartJacobian H1 = boost::none, ChartJacobian H2 = boost::none) {
+      return g.retract(v);
+    }
+};
 }
 
 

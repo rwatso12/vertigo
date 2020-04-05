@@ -11,6 +11,9 @@
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/Marginals.h>
 
+#include <iostream>
+#include <fstream>
+
 using namespace gtsam;
 
 // additional boost features
@@ -20,14 +23,14 @@ namespace po = boost::program_options;
 #include "boost/foreach.hpp"
 #define foreach BOOST_FOREACH
 
-//#include <boost/progress.hpp>
+#include <boost/progress.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "betweenFactorSwitchable.h"
 #include "switchVariableLinear.h"
 #include "switchVariableSigmoid.h"
 #include "betweenFactorMaxMix.h"
-#include "timer.h"
+//#include "timer.h"
 using namespace vertigo;
 
 
@@ -48,9 +51,9 @@ struct Edge {
 
 
 
-void writeResults(Values &results, string outputFile)
+void writeResults(Values &results, std::string outputFile)
 {
-  ofstream resultFile(outputFile.c_str());
+  std::ofstream resultFile(outputFile.c_str());
 
   Values::ConstFiltered<Pose2> result_poses = results.filter<Pose2>();
   foreach (const Values::ConstFiltered<Pose2>::KeyValuePair& key_value, result_poses) {
@@ -74,21 +77,21 @@ void writeResults(Values &results, string outputFile)
 }
 
 // ===================================================================
-bool parseDataset(string inputFile, vector<Pose>&poses, vector<Edge>&edges,multimap<int, int> &poseToEdges)
+bool parseDataset(std::string inputFile, std::vector<Pose>&poses, std::vector<Edge>&edges,std::multimap<int, int> &poseToEdges)
 {
-	 cout << endl << "Parsing dataset " << inputFile << " ... " << endl;
+   std::cout << endl << "Parsing dataset " << inputFile << " ... " << std::endl;
 
 	 // open the file
-	 ifstream inFile(inputFile.c_str());
+   std::ifstream inFile(inputFile.c_str());
 	 if (!inFile) {
-		 cerr << "Error opening dataset file " << inputFile << endl;
+     std::cerr << "Error opening dataset file " << inputFile << std::endl;
 		 return false;
 	 }
 
 	 // go through the dataset file
 	 while (!inFile.eof()) {
 		 // depending on the type of vertex or edge, read the data
-		 string type;
+     std::string type;
 		 inFile >> type;
 
 		 if (type == "VERTEX_SE2") {
@@ -105,7 +108,7 @@ bool parseDataset(string inputFile, vector<Pose>&poses, vector<Edge>&edges,multi
 			 inFile >> e.i >> e.j;
 
 			 if (e.i>e.j) {
-			   swap(e.i,e.j);
+         std::swap(e.i,e.j);
 			 }
 
 			 // read the switch variable ID (only needed in g2o, we dont need it here in the gtsam world)
@@ -119,7 +122,17 @@ bool parseDataset(string inputFile, vector<Pose>&poses, vector<Edge>&edges,multi
 			 // read information matrix
 			 double info[6];
 			 inFile >> info[0] >> info[1] >> info[2] >> info[3] >> info[4] >> info[5];
-			 Matrix informationMatrix = Matrix_(3,3, info[0], info[1], info[2], info[1], info[3], info[4], info[2], info[4], info[5]);
+       Eigen::Matrix3d informationMatrix; //= Matrix_(3,3, info[0], info[1], info[2], info[1], info[3], info[4], info[2], info[4], info[5]);
+       informationMatrix(0,0) = info[0];
+       informationMatrix(0,1) = info[1];
+       informationMatrix(0,2) = info[2];
+       informationMatrix(1,0) = info[1];
+       informationMatrix(1,1) = info[3];
+       informationMatrix(1,2) = info[4];
+       informationMatrix(2,0) = info[2];
+       informationMatrix(2,1) = info[4];
+       informationMatrix(2,2) = info[5];
+
 			 e.covariance = inverse(informationMatrix);
 
 			 if (type == "EDGE_SE2_SWITCHABLE") {
@@ -138,7 +151,7 @@ bool parseDataset(string inputFile, vector<Pose>&poses, vector<Edge>&edges,multi
 			 edges.push_back(e);
 
 			 int id = edges.size()-1;
-			 poseToEdges.insert(pair<int, int>(e.j, id));
+       poseToEdges.insert(std::pair<int, int>(e.j, id));
 		 }
 		 // else just read the next item at next iteration until one of the if clauses is true
 	 }
@@ -151,8 +164,8 @@ bool parseDataset(string inputFile, vector<Pose>&poses, vector<Edge>&edges,multi
 int main(int argc, char *argv[])
 {
     // === handle command line arguments ===
-    string inputFile, outputFile;
-    string method;
+    std::string inputFile, outputFile;
+    std::string method;
     int stop;
     double relinThresh;
 
@@ -162,8 +175,8 @@ int main(int argc, char *argv[])
     po::options_description desc("Allowed options");
       desc.add_options()
       ("help", "Show this help message.")
-      ("input,i", po::value<string>(&inputFile)->default_value("dataset.g2o"),"Load dataset from this file.")
-      ("output,o", po::value<string>(&outputFile)->default_value("results.isam"),"Save results in this file.")
+      ("input,i", po::value<std::string>(&inputFile)->default_value("dataset.g2o"),"Load dataset from this file.")
+      ("output,o", po::value<std::string>(&outputFile)->default_value("results.isam"),"Save results in this file.")
       ("stop", po::value<int>(&stop)->default_value(-1), "Stop after this many poses.")
       ("verbose,v", "verbose mode")
       ("sigmoid", "Use the sigmoid as the switch function Psi instead of a linear function.")
@@ -192,11 +205,11 @@ int main(int argc, char *argv[])
     else useSigmoid = false;
 
     // === read and parse input file ===
-    vector<Pose> poses;
-    vector<Edge> edges;
-    multimap<int, int> poseToEdges;
+    std::vector<Pose> poses;
+    std::vector<Edge> edges;
+    std::multimap<int, int> poseToEdges;
     if (!parseDataset(inputFile, poses, edges, poseToEdges)) {
-    	cerr << "Error parsing the dataset."<< endl;
+      std::cerr << "Error parsing the dataset."<< endl;
     	return 0;
     }
     cout << "Read " << poses.size() << " poses and " << edges.size() << " edges." << endl;
@@ -234,7 +247,7 @@ int main(int argc, char *argv[])
     int switchCounter=-1;
 
     planarSLAM::Values globalInitialEstimate;
-    Timer timer;
+//    Timer timer;
 
     // iterate through the poses and incrementally build and solve the graph, using iSAM2
     foreach (Pose p, poses) {
@@ -245,9 +258,9 @@ int main(int argc, char *argv[])
 
     	 // find all the edges that involve this pose
 
-      timer.tic("findEdges");
-      pair<multimap<int, int>::iterator, multimap<int, int>::iterator > ret = poseToEdges.equal_range(p.id);
-      timer.toc("findEdges");
+//      timer.tic("findEdges");
+     std::pair<std::multimap<int, int>::iterator, std::multimap<int, int>::iterator > ret = poseToEdges.equal_range(p.id);
+//      timer.toc("findEdges");
 
     	for (multimap<int, int>::iterator it=ret.first; it!=ret.second; it++) {
 
@@ -257,20 +270,20 @@ int main(int argc, char *argv[])
 
     	  // see if this is an odometry edge, if yes, use it to initialize the current pose
     	  if (e.j==e.i+1) {
-    	    timer.tic("initialize");
+//    	    timer.tic("initialize");
     	    Pose2 predecessorPose = isam2.calculateEstimate<Pose2>(planarSLAM::PoseKey(p.id-1));
     	    if (isnan(predecessorPose.x()) || isnan(predecessorPose.y()) || isnan(predecessorPose.theta())) {
     	      cout << "! Degenerated solution (NaN) detected. Solver failed." << endl;
     	      writeResults(globalInitialEstimate, outputFile);
-    	      timer.print(cout);
+//    	      timer.print(cout);
     	      return 0;
     	    }
     	    initialEstimate.insertPose(p.id, predecessorPose * Pose2(e.x, e.y, e.th));
     	    globalInitialEstimate.insertPose(p.id,  predecessorPose * Pose2(e.x, e.y, e.th) );
-    	    timer.toc("initialize");
+//    	    timer.toc("initialize");
     	  }
 
-    	  timer.tic("addEdges");
+//    	  timer.tic("addEdges");
     		if (!e.switchable && !e.maxMix) {
     		  if (!vm.count("odoOnly") || (e.j == e.i+1) ) {
     		    // this is easy, use the convenience functions of gtsam
@@ -318,7 +331,7 @@ int main(int argc, char *argv[])
     		  boost::shared_ptr<NonlinearFactor> maxMixFactor(new BetweenFactorMaxMix<Pose2>(planarSLAM::PoseKey(e.i), planarSLAM::PoseKey(e.j), Pose2(e.x, e.y, e.th), odom_model, null_model, e.weight));
     		  graph.push_back(maxMixFactor);
     		}
-    		timer.toc("addEdges");
+//    		timer.toc("addEdges");
     	}
 
 
@@ -336,15 +349,15 @@ int main(int argc, char *argv[])
 
 
     	if (verbose) {
-    	  timer.tic("update");
+//    	  timer.tic("update");
     	  ISAM2Result result = isam2.update(graph, initialEstimate);
-    	  timer.toc("update");
+//    	  timer.toc("update");
     	  cout << "cliques: " << result.cliques << "\terr_before: " << *(result.errorBefore) << "\terr_after: " << *(result.errorAfter) << "\trelinearized: " << result.variablesRelinearized << endl;
     	}
     	else  {
-    	  timer.tic("update");
+//    	  timer.tic("update");
     	  isam2.update(graph, initialEstimate);
-    	  timer.toc("update");
+//    	  timer.toc("update");
     	}
 
 
@@ -352,11 +365,11 @@ int main(int argc, char *argv[])
     	if ( (counter++ >= stop) && (stop>0)) break;
 
     	if (false) {
-    	  timer.tic("marginals");
+//    	  timer.tic("marginals");
 
     	  gtsam::Marginals marginals(isam2.getFactorsUnsafe(), isam2.getLinearizationPoint());
     	  gtsam::Matrix cov = marginals.marginalCovariance(gtsam::Symbol('x', p.id));
-    	  timer.toc("marginals");
+//    	  timer.toc("marginals");
     	  cout << cov << endl << endl;
     	}
 
@@ -377,7 +390,7 @@ int main(int argc, char *argv[])
     //results.print();
 
 
-    timer.print(cout);
+//    timer.print(cout);
 
     // === write results ===
 

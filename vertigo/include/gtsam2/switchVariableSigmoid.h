@@ -11,16 +11,16 @@
 #pragma once
 
 //#include <gtsam/base/DerivedValue.h>
-#include <gtsam/base/Value.h>
+//#include <gtsam/base/Value.h>
 #include <gtsam/base/Lie.h>
-#include "DerivedValue.h"
+//#include "DerivedValue.h"
 
 namespace vertigo {
 
   /**
    * SwitchVariableSigmoid is a wrapper around double to allow it to be a Lie type
    */
-  struct SwitchVariableSigmoid : public gtsam::DerivedValue<SwitchVariableSigmoid> {//DerivedValue doesn't exist in gtsam4, instead use traits
+  struct SwitchVariableSigmoid {
 
     /** default constructor */
     SwitchVariableSigmoid() : d_(10.0) {}
