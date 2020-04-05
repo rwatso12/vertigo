@@ -3,6 +3,8 @@
  *
  *  Created on: 02.08.2012
  *      Author: niko
+ *  Minor modifications on: 04.04.2020
+ *      Author: watsonryan
  */
 
 #ifndef SWITCHVARIABLELINEAR_H_
@@ -10,7 +12,6 @@
 
 #pragma once
 
-#include <gtsam/base/DerivedValue.h>
 #include <gtsam/base/Lie.h>
 
 namespace vertigo {
