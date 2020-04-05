@@ -11,7 +11,7 @@
 #pragma once
 
 //#include <gtsam/base/DerivedValue.h>
-#include <gtsam/base/Value.h>
+//#include <gtsam/base/Value.h>
 #include <gtsam/base/Lie.h>
 //#include "DerivedValue.h"
 
