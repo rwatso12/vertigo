@@ -12,8 +12,7 @@ find_package(Boost 1.46 COMPONENTS program_options REQUIRED)
 
 # specify our own source files that need to be compiled and linked into the lib
 include_directories(${PROJECT_SOURCE_DIR}/../../include)
-include_directories(${PROJECT_SOURCE_DIR}/../../include/gtsam2)
-# include_directories(${PROJECT_SOURCE_DIR}/../../include/gtsam4)
+include_directories(${PROJECT_SOURCE_DIR}/../../include/gtsam)
 include_directories(${GTSAM_INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
 set (LINK_LIBRARIES ${LINK_LIBRARIES} vertigo-gtsam
     ${GTSAM_LIBS}

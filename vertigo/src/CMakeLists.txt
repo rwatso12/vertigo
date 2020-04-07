@@ -3,5 +3,5 @@ if (G2O_FOUND)
 endif()
 
 if (GTSAM_FOUND)
-  add_subdirectory(gtsam2)
+  add_subdirectory(gtsam)
 endif()

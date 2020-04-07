@@ -16,7 +16,7 @@ set(SOURCEFILES
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/../../include)
-include_directories(${PROJECT_SOURCE_DIR}/../../include/gtsam2)
+include_directories(${PROJECT_SOURCE_DIR}/../../include/gtsam)
 include_directories(${GTSAM_INCLUDE_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${SOURCEFILES})
