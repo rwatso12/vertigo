@@ -88,16 +88,18 @@ bool parseDataset(std::string inputFile, std::vector<Pose>&poses, std::vector<Ed
 		 return false;
 	 }
 
+//   std::cout << "in file eof is: " << inFile.eof() << endl;
 	 // go through the dataset file
 	 while (!inFile.eof()) {
 		 // depending on the type of vertex or edge, read the data
      std::string type;
 		 inFile >> type;
-
+//     std::cout << "in file is: " << type << endl;
 		 if (type == "VERTEX_SE2") {
 			 Pose p;
 			 inFile  >> p.id >> p.x >> p.y >> p.th;
 			 poses.push_back(p);
+//       std::cout << "size of poses is: " << poses.size() << endl;
 		 }
 
 		 else if (type == "EDGE_SE2_SWITCHABLE" || type == "EDGE_SE2" || type == "EDGE_SE2_MAXMIX") {
@@ -174,7 +176,7 @@ int main(int argc, char *argv[])
 
     po::options_description desc("Allowed options");
       desc.add_options()
-      ("help", "Show this help message.")
+      ("help,h", "Show this help message.")
       ("input,i", po::value<std::string>(&inputFile)->default_value("dataset.g2o"),"Load dataset from this file.")
       ("output,o", po::value<std::string>(&outputFile)->default_value("results.isam"),"Save results in this file.")
       ("stop", po::value<int>(&stop)->default_value(-1), "Stop after this many poses.")
@@ -297,7 +299,7 @@ int main(int argc, char *argv[])
             initialEstimate.insert(Symbol('s',++switchCounter),SwitchVariableLinear(1.0));
 
             // create switch prior factor
-            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector2(1, 1.0));
+            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector1(1.0));
             boost::shared_ptr<PriorFactor<SwitchVariableLinear> > switchPriorFactor (new PriorFactor<SwitchVariableLinear> (Symbol('s',switchCounter), SwitchVariableLinear(1.0), switchPriorModel));
             graph.push_back(switchPriorFactor);
 
@@ -313,7 +315,7 @@ int main(int argc, char *argv[])
     		    initialEstimate.insert(Symbol('s',++switchCounter),SwitchVariableSigmoid(10.0));
 
     		    // create switch prior factor
-            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector2(1, 20.0));
+            SharedNoiseModel switchPriorModel = noiseModel::Diagonal::Sigmas(Vector1(20.0));
     		    boost::shared_ptr<PriorFactor<SwitchVariableSigmoid> > switchPriorFactor (new PriorFactor<SwitchVariableSigmoid> (Symbol('s',switchCounter), SwitchVariableSigmoid(10.0), switchPriorModel));
     		    graph.push_back(switchPriorFactor);
 
@@ -337,11 +339,12 @@ int main(int argc, char *argv[])
 
     	if (p.id==0) {
     	  // add prior for first pose
-        SharedDiagonal prior_model = noiseModel::Diagonal::Sigmas(Vector4(3, 0.01, 0.01, 0.01));
+        SharedDiagonal prior_model = noiseModel::Diagonal::Sigmas(Vector3( 0.01, 0.01, 0.01));
     		graph.addPrior(p.id, Pose2(p.x, p.y, p.th), prior_model);
 
     		// initial value for first pose
     		initialEstimate.insertPose(p.id, Pose2(p.x, p.y, p.th));
+//        cout << "p is: " << p.x << " , " << p.y << " , " << p.th << endl;
     	}
 
 
@@ -357,6 +360,7 @@ int main(int argc, char *argv[])
     	else  {
 //    	  timer.tic("update");
     	  isam2.update(graph, initialEstimate);
+        cout << "counter: " << counter << " and poses size is: " << poses.size() << endl;
 //    	  timer.toc("update");
     	}
 
@@ -366,7 +370,6 @@ int main(int argc, char *argv[])
 
     	if (false) {
 //    	  timer.tic("marginals");
-
     	  gtsam::Marginals marginals(isam2.getFactorsUnsafe(), isam2.getLinearizationPoint());
     	  gtsam::Matrix cov = marginals.marginalCovariance(gtsam::Symbol('x', p.id));
 //    	  timer.toc("marginals");
